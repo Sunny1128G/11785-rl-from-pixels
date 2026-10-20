@@ -45,6 +45,7 @@ The pilot scripts modify the upstream loss at runtime (`Planet.compute_loss = al
 | `midterm_pilot_v2.py` | Train Run 2 (1,440 environment steps) |
 | `midterm_eval.py` | Evaluate Run 1 checkpoint against random actions |
 | `midterm_eval_v2.py` | Evaluate Run 2 checkpoint against random actions |
+| `midterm_pilot_checkpoint.pt`, `midterm_pilot_v2_checkpoint.pt` | Uploaded pilot model checkpoints used by the evaluation scripts (Run 1 and Run 2, respectively) |
 | `midterm_pilot_metrics.npz`, `midterm_pilot_v2_metrics.npz` | Training losses, training-rollout returns, and step counts |
 | `midterm_eval_results.npz`, `midterm_eval_v2_results.npz` | Saved evaluation seeds and per-seed returns |
 | `midterm_baseline_comparison.png`, `midterm_training_loss.png` | Figures included in the midterm report |
@@ -79,23 +80,32 @@ From the repository root:
 cd planet_baseline
 ```
 
-After preparing a compatible Python/MuJoCo environment as described above, run the training scripts **separately**:
+### Evaluate the uploaded checkpoints (no retraining required)
+
+The repository now includes **both** pilot checkpoints in this directory:
+
+- `midterm_pilot_checkpoint.pt` — Run 1, 600 environment steps
+- `midterm_pilot_v2_checkpoint.pt` — Run 2, 1,440 environment steps
+
+After preparing a compatible Python/MuJoCo environment, you can run the evaluation scripts directly **from `planet_baseline/`**:
 
 ```bash
-python -u midterm_pilot.py       # Run 1: outputs midterm_pilot_checkpoint.pt
-python -u midterm_pilot_v2.py    # Run 2: outputs midterm_pilot_v2_checkpoint.pt
+python -u midterm_eval.py       # loads midterm_pilot_checkpoint.pt
+python -u midterm_eval_v2.py    # loads midterm_pilot_v2_checkpoint.pt
 ```
 
-To evaluate the resulting models:
+Both scripts use `torch.load` and expect the checkpoint to contain `model` and `params`; the scripts report 120-step returns for evaluation environment seeds 42, 43, and 44. The files' presence in GitHub has been confirmed, **but a fresh end-to-end load/evaluation after upload has not yet been independently verified**.
+
+### Optional: rerun training from scratch
+
+To regenerate the checkpoints rather than use the uploaded ones, execute the pilot scripts separately:
 
 ```bash
-python -u midterm_eval.py       # requires midterm_pilot_checkpoint.pt
-python -u midterm_eval_v2.py    # requires midterm_pilot_v2_checkpoint.pt
+python -u midterm_pilot.py       # Run 1: 600 steps / 90 model updates
+python -u midterm_pilot_v2.py    # Run 2: 1,440 steps / 300 model updates
 ```
 
-**Checkpoints (`.pt`) are not included in the repository.** Both evaluation scripts call `torch.load` on their corresponding local checkpoints, so running them directly after cloning will fail unless you first train the model or supply the matching checkpoint separately.
-
-The training scripts save metrics to `.npz` and diagnostic training-rollout curves to `.png`; the evaluation scripts save per-seed results to `.npz`.
+**Warning:** training saves checkpoint files under the same names, so rerunning these commands locally can overwrite the checkpoints in your working directory. Make copies if you need to preserve the originally uploaded models. Training also creates `.npz` metrics and diagnostic `.png` plots; evaluation creates per-seed result `.npz` files.
 
 For a lightweight inspection of **already committed evaluation data** without retraining:
 
