@@ -1,0 +1,9 @@
+# Checkpoint inspection, unit tests, plots, and offline replay (tested versions).
+# gymnasium/moviepy are transitive imports of the existing utils.py.
+# For live DMC collection, see rssm_audit/REPORT.md, including Windows notes.
+torch==2.11.0
+numpy==2.3.4
+matplotlib==3.10.6
+einops==0.8.2
+gymnasium==0.29.1
+moviepy==1.0.3

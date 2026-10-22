@@ -120,6 +120,15 @@ for filename in ["midterm_eval_results.npz", "midterm_eval_v2_results.npz"]:
         print("PlaNet mean:", d["planet_returns"].mean())
 ```
 
+## RSSM checkpoint diagnostics (Lyra)
+
+The existing Run 2 checkpoint has now been strictly loaded and tested on real
+Cartpole-Swingup images. See [the RSSM audit report](rssm_audit/REPORT.md) for
+architecture/loss checks, original-versus-reconstructed images, reward prediction
+results, saved trajectories, and offline replay commands. Run the diagnostics with
+`python planet_baseline/rssm_diagnostics.py` from the repository root. The original
+training scripts and checkpoint weights are unchanged.
+
 ## Limitations and next steps
 
 - Only **120-step rollouts** and three evaluation-environment seeds are included; do not compare these returns directly with published 1,000-step benchmarks.
