@@ -1,0 +1,47 @@
+# configs_5seed.yaml
+# Training config for 5 PlaNet training seeds.
+# Base parameters match the params saved in midterm_pilot_v2_checkpoint.pt.
+# Do not modify configs.yaml or midterm_pilot*.py.
+
+environment:
+  domain_name: cartpole
+  task_name: swingup
+  observation_resolution: 64        # 64x64 RGB
+  pixel_bit: 5
+  action_repeat: 0                  # Saved value is 0. Confirm its effect on env_steps before changing.
+  action_epsilon: 0.3               # Std of exploration noise during training only
+  device: cpu
+
+seeds:
+  train_seeds: [42, 43, 44, 45, 46] # Training seeds. Do not change after training starts.
+  eval_seeds: [100, 101, 102, 103, 104, 105, 106, 107, 108, 109]  # Full-episode evaluation seeds
+
+training:
+  n_seed_episodes: 2                # Initial random trajectories (same as midterm Run 2)
+  rounds: 10                        # Same as midterm Run 2
+  updates_per_round: 30             # Run 2: 300 total updates over 10 rounds
+  batch_size: 4
+  chunk_length: 16
+  lr: 1.0e-3
+  adam_epsilon: 1.0e-4
+  grad_clip_norm: 100               # Value hard-coded in the midterm training loop
+  loss_version: original            # Change to aligned or corrected after Lyra's audit
+
+planner:
+  planning_horizon: 5               # Midterm Run 2 value; original design was 12
+  n_plans: 32                       # CEM candidates
+  plan_optimization_iter: 2         # CEM iterations
+  top_k: 8                          # Elites
+
+model:
+  feat_dim: 1024
+  h_dim: 200                        # GRU deterministic state size
+  z_dim: 30                         # Stochastic state size
+  n_ff_layers: 2
+  min_std: 0.01
+  free_nats: 3.0
+
+evaluation:
+  episode_steps: 1000               # Full episode, for comparison with baselines
+  report_120_step: true             # Also keep 120-step results to compare with the midterm report
+  deterministic_policy: true        # No exploration noise during evaluation
