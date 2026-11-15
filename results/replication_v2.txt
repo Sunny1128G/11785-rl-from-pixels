@@ -1,0 +1,12 @@
+Initialized cartpole-swingup as environment
+Initialized PlaNet (2.64M) as the world-model
+Seed 42 | Random: 0.5233 | PlaNet: 0.4216
+Seed 43 | Random: 0.3197 | PlaNet: 0.4002
+Seed 44 | Random: 0.1126 | PlaNet: 0.4577
+
+=== RESULTS ===
+Random Mean: 0.31855113470853264
+PlaNet Mean: 0.4265163410726815
+Random Std: 0.16769569531159575
+PlaNet Std: 0.023761425285218313
+MIDTERM EVALUATION COMPLETE!
