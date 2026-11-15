@@ -143,3 +143,33 @@ The base PlaNet implementation in this directory is **adapted from** [smmislam/p
 **Paper:** Hafner et al., [*Learning Latent Dynamics for Planning from Pixels*](https://arxiv.org/abs/1811.04551) (ICML 2019).
 
 **Project:** Carnegie Mellon University, 11-785 Introduction to Deep Learning (Fall 2026).
+
+
+## Versioned loss and configured training
+
+`Planet.compute_loss` supports `original` (historical sampled, unshifted loss),
+`aligned` (pilot mean-based full squared error), and `v2` (mean-based unit-Gaussian
+NLL without constants: 0.5 image SSE + 0.5 aligned reward MSE + free-nats KL).
+Images sum over pixels and average over time/batch; rewards average over the
+T-1 valid time/batch pairs. Replay chunks must stay within individual episodes.
+The posterior latent still uses reparameterized sampling.
+
+New training reads `training.loss_version` from `configs_5seed.yaml`:
+
+```bash
+python planet_baseline/train_configured.py --output results/loss_v2 --seed 42
+```
+
+Omit `--seed` to run all configured training seeds. Each seed gets a new directory
+containing its checkpoint, metrics, and curve. Existing output directories are
+rejected. The version is saved in checkpoint `params`, top-level metadata and
+metrics, and printed at startup. Evaluation remains a separate operation.
+This entry point needs the training dependencies listed above, including ruamel.yaml.
+
+Historical pilot scripts and artifacts retain their original meaning. Both pilot
+checkpoints used `aligned`, including the filename `midterm_pilot_v2_checkpoint.pt`;
+that filename does not mean loss version v2. Missing version metadata preserves
+the original API default for compatibility, so explicitly select `aligned` when
+resuming a known historical pilot through the new loss API. The new entry point
+starts fresh training and does not resume checkpoints. Changing loss version
+changes the experiment; historical reported loss values are not rescaled.

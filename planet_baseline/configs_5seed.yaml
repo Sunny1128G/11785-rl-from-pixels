@@ -25,7 +25,8 @@ training:
   lr: 1.0e-3
   adam_epsilon: 1.0e-4
   grad_clip_norm: 100               # Value hard-coded in the midterm training loop
-  loss_version: original            # Change to aligned or corrected after Lyra's audit
+  loss_version: v2                  # Incoming reward; 0.5 SSE/MSE + free-nats KL
+  collection_steps: 120             # Training rollout cap; separate from evaluation
 
 planner:
   planning_horizon: 5               # Midterm Run 2 value; original design was 12

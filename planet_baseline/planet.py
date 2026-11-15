@@ -58,6 +58,32 @@ class Planet(nn.Module):
         return dist_predicted
 
     def compute_loss(self, target, dist_predicted):
+        """Select original sampled loss, pilot aligned loss, or unit-NLL v2.
+
+        Missing metadata retains the original API behavior; historical pilot
+        checkpoints used an external override and must explicitly use aligned
+        if resumed through this API. A filename containing v2 is not metadata.
+        """
+        version = self.params.get('loss_version', 'original')
+        if version not in ('original', 'aligned', 'v2'):
+            raise ValueError(f'Unknown loss_version: {version}')
+        if version != 'original':
+            obs = torch.stack([d.mean for d in dist_predicted['recon_obs']])
+            reward = torch.stack([d.mean for d in dist_predicted['reward']])
+            if obs.shape != target['obs'].shape or reward.shape != target['reward'].shape:
+                raise ValueError('Prediction and target shapes must match exactly')
+            if obs.shape[0] < 2 or reward.shape[0] != obs.shape[0]:
+                raise ValueError('Aligned loss requires at least two matching time steps')
+            if any(len(dist_predicted[k]) != obs.shape[0] for k in ('prior', 'posterior')):
+                raise ValueError('Latent distributions must match the sequence length')
+            scale = 0.5 if version == 'v2' else 1.0
+            # Unit-variance Gaussian NLL, omitting parameter-independent constants.
+            recon = scale * (obs - target['obs']).square().mean(dim=(0, 1)).sum()
+            rew = scale * (reward[1:] - target['reward'][:-1]).square().mean()
+            kl = torch.stack([kl_divergence(q, p) for q, p in
+                              zip(dist_predicted['posterior'], dist_predicted['prior'])])
+            kl = kl.clamp_min(self.params['free_nats']).mean()
+            return recon + kl + rew, (recon.item(), kl.item(), rew.item())
         sampled_reconstructed_obs = torch.stack([dist_recon_obs.rsample() for dist_recon_obs in dist_predicted['recon_obs']])
         sampled_reward = torch.stack([dist_reward.rsample() for dist_reward in dist_predicted['reward']])
         # Individual loss terms
