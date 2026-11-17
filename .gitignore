@@ -221,3 +221,6 @@ __marimo__/
 /report/
 /article/
 runs/
+
+# Private Chinese documentation
+/local_docs_zh/

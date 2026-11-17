@@ -305,7 +305,7 @@ class ReplayBuffer:
         sampled_indices = np.random.choice(len(self.memory), n, replace=True)
         chunked_episodes = list()
         for ep_idx in sampled_indices:
-            start_idx = np.random.randint(low=0, high=len(self.memory[ep_idx])-self.params['chunk_length'])
+            start_idx = np.random.randint(low=0, high=len(self.memory[ep_idx])-self.params['chunk_length']+1)
             chunked_episodes.append(self.memory[ep_idx][start_idx:start_idx+self.params['chunk_length']])
         serialized_episodes = self.serialize_episode(chunked_episodes)
         return serialized_episodes
