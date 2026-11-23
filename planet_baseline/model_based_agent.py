@@ -21,7 +21,7 @@ Transition = namedtuple('Transition',
 
 
 class ModelBasedLearner:
-    def __init__(self, params):
+    def __init__(self, params, *, log_dir=None):
         self.params = params
         self.d_type = get_dtype(self.params['fp_precision'])
         self.device = get_device(self.params['device'])
@@ -30,7 +30,16 @@ class ModelBasedLearner:
         self.world_model = Planet(params=self.params, action_dim=self.action_dim).to(self.d_type).to(self.device)
         print(f'Initialized {self.world_model} ({count_parameters(self.world_model)}) as the world-model')
         self.optimizer = Adam(params=self.world_model.parameters(), lr=self.params['lr'], eps=self.params['adam_epsilon'])
-        self.logger = SummaryWriter(comment=exp_tag)
+        self.logger = SummaryWriter(logdir=log_dir, comment=exp_tag)
+        self.behavior = None
+        if params.get('algorithm', 'planet') == 'dreamer':
+            from dreamer import DreamerBehavior
+            self.behavior = DreamerBehavior(params, self.action_dim, self.device, self.d_type)
+
+    def select_action(self, h, z, *, training=False):
+        if self.behavior is None:
+            return self.plan_action_with_cem(h, z)
+        return self.behavior.action(h, z, training).squeeze(0)
 
     def get_env(self):
         if self.params['api_name'] == 'gym':
@@ -319,7 +328,11 @@ class ReplayBuffer:
             batched_ep_obs.append(ep_obs)
             batched_ep_action.append(ep_action)
             batched_ep_reward.append(ep_reward)
-        batched_ep_obs = torch.stack(batched_ep_obs).to(self.d_type).to(self.device)
+        batched_ep_obs = torch.stack(batched_ep_obs)
+        compact_pixels = batched_ep_obs.dtype == torch.uint8
+        batched_ep_obs = batched_ep_obs.to(self.device, self.d_type)
+        if compact_pixels:
+            batched_ep_obs = batched_ep_obs / (2 ** self.params['pixel_bit']) - 0.5
         batched_ep_action = torch.stack(batched_ep_action).to(self.d_type).to(self.device)
         batched_ep_reward = torch.stack(batched_ep_reward).to(self.d_type).to(self.device)
         return {'obs': batched_ep_obs.transpose(0, 1), 'action': batched_ep_action.transpose(0, 1), 'reward': batched_ep_reward.transpose(0, 1)}

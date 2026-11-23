@@ -1,4 +1,4 @@
-"""Evaluate configured PlaNet runs on the held-out evaluation seeds.
+"""Evaluate configured PlaNet or Dreamer runs on held-out CPU episodes.
 
 Run from planet_baseline/ after train_configured.py has produced seed folders:
     python eval_configured.py --runs ../runs/v2
@@ -6,11 +6,14 @@ Run from planet_baseline/ after train_configured.py has produced seed folders:
 
 For every runs/seed_<s>/checkpoint.pt, writes runs/seed_<s>/eval.npz with per-episode
 returns on each evaluation seed (100-109 by default). Existing eval.npz files are skipped.
-Evaluation follows the midterm protocol: rendered 64x64 camera-0 frames, CEM planning,
-no exploration noise. Each episode reseeds torch so CEM sampling is repeatable.
+Evaluation uses rendered camera-0 frames without exploration noise. Each episode
+reseeds torch so CEM and posterior sampling are repeatable.
 """
 import argparse
+import hashlib
 from pathlib import Path
+import platform
+from time import perf_counter_ns
 
 import numpy as np
 import torch
@@ -28,11 +31,16 @@ def load_checkpoint_agent(ckpt_path):
     agent = ModelBasedLearner(params)
     agent.world_model.load_state_dict(ckpt["model"])
     agent.world_model.eval()
+    if agent.behavior is not None:
+        agent.behavior.load_state_dict(ckpt["behavior"])
+        agent.behavior.eval()
     return agent, ckpt
 
 
-def run_episode(agent, eval_seed, policy, steps, report_steps):
-    env = suite.load("cartpole", "swingup", task_kwargs={"random": eval_seed})
+def run_episode(agent, eval_seed, policy, steps, report_steps, *, timing=None):
+    params = agent.params
+    resolution = params["observation_resolution"]
+    env = suite.load(params["domain_name"], params["task_name"], task_kwargs={"random": eval_seed})
     spec = env.action_spec()
     rng = np.random.default_rng(eval_seed)
     torch.manual_seed(eval_seed)
@@ -45,11 +53,15 @@ def run_episode(agent, eval_seed, policy, steps, report_steps):
             if policy == "random":
                 action = rng.uniform(spec.minimum, spec.maximum).astype(spec.dtype)
             else:
-                image = env.physics.render(height=64, width=64, camera_id=0)
+                image = env.physics.render(height=resolution, width=resolution, camera_id=0)
                 obs = agent.process_dm_observation(image).unsqueeze(0)
                 embed = agent.world_model.obs_encoder(obs)
                 z = agent.world_model.repr_model(h, embed).sample()
-                planned = agent.plan_action_with_cem(h, z)
+                if timing is not None:
+                    start = perf_counter_ns()
+                planned = agent.select_action(h, z)
+                if timing is not None:
+                    timing.append((perf_counter_ns() - start) / 1e6)
                 action = np.clip(planned.cpu().numpy(), spec.minimum, spec.maximum).astype(spec.dtype)
                 h = agent.world_model.rnn_model(h, z, planned.unsqueeze(0))
 
@@ -68,7 +80,11 @@ def main():
     parser.add_argument("--runs", type=Path, required=True, help="Folder holding seed_<s>/ subfolders")
     parser.add_argument("--config", type=Path, default=HERE / "configs_5seed.yaml")
     parser.add_argument("--random-baseline", action="store_true", help="Also run uniform random actions")
+    parser.add_argument("--threads", type=int, default=1, help="PyTorch CPU intra-op threads")
     args = parser.parse_args()
+    if args.threads < 1:
+        parser.error("--threads must be positive")
+    torch.set_num_threads(args.threads)
 
     with args.config.open() as f:
         cfg = YAML(typ="safe").load(f)
@@ -87,13 +103,18 @@ def main():
             print(f"Skipping {seed_dir.name}: {out.name} already exists", flush=True)
             continue
 
-        agent, ckpt = load_checkpoint_agent(seed_dir / "checkpoint.pt")
-        print(f"\n{seed_dir.name} loss_version={ckpt['loss_version']} env_steps={ckpt['env_steps']}", flush=True)
+        checkpoint = seed_dir / "checkpoint.pt"
+        agent, ckpt = load_checkpoint_agent(checkpoint)
+        algorithm = agent.params.get("algorithm", "planet")
+        loss_version = ckpt.get("loss_version", agent.params.get("loss_version", "historical"))
+        print(f"\n{seed_dir.name} loss_version={loss_version} env_steps={ckpt['env_steps']}", flush=True)
 
-        full, at_report = [], []
+        full, at_report, timings = [], [], []
         rand_full, rand_report = [], []
         for es in eval_seeds:
-            r_full, r_rep = run_episode(agent, es, "planet", steps, report_steps)
+            timing = []
+            r_full, r_rep = run_episode(agent, es, algorithm, steps, report_steps, timing=timing)
+            timings.append(np.array(timing))
             full.append(r_full)
             at_report.append(r_rep if r_rep is not None else np.nan)
             print(f"  eval seed {es}: full={r_full:.4f} report={r_rep}", flush=True)
@@ -103,20 +124,34 @@ def main():
                 rand_full.append(rf)
                 rand_report.append(rr if rr is not None else np.nan)
 
+        lengths = np.array([len(t) for t in timings])
+        latency = np.concatenate(timings)
         arrays = dict(
+            algorithm=np.array(algorithm),
             eval_seeds=np.array(eval_seeds),
-            planet_full=np.array(full),
-            planet_120=np.array(at_report),
+            **{f"{algorithm}_full": np.array(full), f"{algorithm}_120": np.array(at_report)},
+            actual_episode_steps=lengths,
+            action_latency_ms=latency,
+            action_latency_median_ms=np.array([np.median(t) for t in timings]),
+            action_latency_p95_ms=np.array([np.percentile(t, 95) for t in timings]),
+            eval_cpu=np.array(platform.processor()),
+            eval_threads=np.array(torch.get_num_threads()),
+            eval_torch=np.array(str(torch.__version__)),
+            checkpoint_sha256=np.array(hashlib.sha256(checkpoint.read_bytes()).hexdigest()),
             train_seed=np.array(int(seed_dir.name.split("_")[1])),
-            loss_version=ckpt["loss_version"],
+            loss_version=loss_version,
             train_env_steps=np.array(ckpt["env_steps"]),
             episode_steps=np.array(steps),
         )
         if args.random_baseline:
             arrays["random_full"] = np.array(rand_full)
             arrays["random_120"] = np.array(rand_report)
-        np.savez(out, **arrays)
+        with out.with_suffix(".tmp").open("wb") as f:
+            np.savez(f, **arrays)
+        out.with_suffix(".tmp").replace(out)
         summary.append((seed_dir.name, np.mean(full), np.mean(at_report)))
+        print(f"  action latency median={np.median(latency):.4f} ms "
+              f"P95={np.percentile(latency, 95):.4f} ms", flush=True)
 
         agent.logger.close()
 

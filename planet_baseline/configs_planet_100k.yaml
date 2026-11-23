@@ -1,0 +1,43 @@
+environment:
+  domain_name: cartpole
+  task_name: swingup
+  observation_resolution: 64
+  pixel_bit: 5
+  action_repeat: 0
+  action_epsilon: 0.3
+  device: cuda
+
+seeds:
+  train_seeds: [42, 43, 44, 45, 46]
+  eval_seeds: [100, 101, 102, 103, 104, 105, 106, 107, 108, 109]
+
+training:
+  n_seed_episodes: 2
+  env_step_budget: 100000
+  updates_per_round: 30
+  batch_size: 4
+  chunk_length: 16
+  lr: 1.0e-3
+  adam_epsilon: 1.0e-4
+  grad_clip_norm: 100
+  loss_version: v2
+  collection_steps: 120
+
+model:
+  feat_dim: 1024
+  h_dim: 200
+  z_dim: 30
+  n_ff_layers: 2
+  min_std: 0.01
+  free_nats: 3.0
+
+evaluation:
+  episode_steps: 1000
+  report_120_step: true
+  deterministic_policy: true
+
+planner:
+  planning_horizon: 5
+  n_plans: 32
+  plan_optimization_iter: 2
+  top_k: 8

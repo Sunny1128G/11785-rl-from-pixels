@@ -33,8 +33,9 @@ class Planet(nn.Module):
     def get_init_h_state(self, batch_size):
         return torch.zeros((batch_size, self.params['h_dim']), dtype=self.d_type, device=self.device)
 
-    def forward(self, sampled_episodes):
+    def forward(self, sampled_episodes, *, return_states=False):
         dist_predicted = {'prior': list(), 'posterior': list(), 'recon_obs': list(), 'reward': list()}
+        states = []
         h_state = self.get_init_h_state(batch_size=self.params['batch_size'])
         for time_stamp in range(self.params['chunk_length']):
             input_obs = sampled_episodes['obs'][time_stamp]
@@ -46,6 +47,8 @@ class Planet(nn.Module):
             z_posterior = self.repr_model(h_state, encoded_obs)
 
             z_state = z_posterior.rsample()
+            if return_states:
+                states.append((h_state.detach(), z_state.detach()))
 
             dist_recon_obs = self.decoder_model(h_state, z_state)
             dist_reward = self.reward_model(h_state, z_state)
@@ -55,6 +58,8 @@ class Planet(nn.Module):
             dist_predicted['posterior'].append(z_posterior)
             dist_predicted['recon_obs'].append(dist_recon_obs)
             dist_predicted['reward'].append(dist_reward)
+        if return_states:
+            return dist_predicted, tuple(torch.stack(part) for part in zip(*states))
         return dist_predicted
 
     def compute_loss(self, target, dist_predicted):
