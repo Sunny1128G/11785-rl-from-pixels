@@ -1,0 +1,84 @@
+Initialized cartpole-swingup as environment
+Initialized PlaNet (2.64M) as the world-model
+
+seed_42 loss_version=v2 env_steps=100000
+  eval seed 100: full=7.0420 report=0.9251224599671449
+  eval seed 101: full=88.0925 report=1.6520875657487035
+  eval seed 102: full=65.1315 report=0.7747770827548079
+  eval seed 103: full=8.8387 report=0.7811221993435846
+  eval seed 104: full=7.3732 report=0.864550514960962
+  eval seed 105: full=110.9124 report=1.4613873774007318
+  eval seed 106: full=29.2358 report=1.1181059832567013
+  eval seed 107: full=47.9427 report=0.7571075995189634
+  eval seed 108: full=24.1035 report=1.0360403383934913
+  eval seed 109: full=70.1312 report=1.2914884709015095
+  action latency median=9.1261 ms P95=11.9534 ms
+Initialized cartpole-swingup as environment
+Initialized PlaNet (2.64M) as the world-model
+
+seed_43 loss_version=v2 env_steps=100000
+  eval seed 100: full=100.7615 report=1.9933011241193956
+  eval seed 101: full=114.2244 report=2.2677088048561678
+  eval seed 102: full=96.3937 report=1.8579750716083645
+  eval seed 103: full=104.1068 report=1.7742735465924235
+  eval seed 104: full=89.3371 report=1.1752404134798855
+  eval seed 105: full=80.0588 report=1.5986083599724457
+  eval seed 106: full=111.4180 report=2.853549453733932
+  eval seed 107: full=95.9362 report=1.9448813167578896
+  eval seed 108: full=110.9637 report=1.9073855607335406
+  eval seed 109: full=97.8827 report=1.6458548399605892
+  action latency median=8.2931 ms P95=10.2552 ms
+Initialized cartpole-swingup as environment
+Initialized PlaNet (2.64M) as the world-model
+
+seed_44 loss_version=v2 env_steps=100000
+  eval seed 100: full=97.6186 report=2.3297414694967338
+  eval seed 101: full=85.0464 report=1.8775746244852516
+  eval seed 102: full=118.2489 report=2.5692121735885682
+  eval seed 103: full=114.1164 report=2.7799598829358136
+  eval seed 104: full=63.6050 report=1.4390404469463929
+  eval seed 105: full=95.1334 report=2.2034423058595647
+  eval seed 106: full=96.5217 report=0.7936231587299905
+  eval seed 107: full=105.7891 report=2.1528346189013923
+  eval seed 108: full=96.8729 report=2.508499291121204
+  eval seed 109: full=85.8392 report=2.098907945141573
+  action latency median=8.2890 ms P95=9.9579 ms
+Initialized cartpole-swingup as environment
+Initialized PlaNet (2.64M) as the world-model
+
+seed_45 loss_version=v2 env_steps=100000
+  eval seed 100: full=73.1076 report=2.1213875032220626
+  eval seed 101: full=15.8966 report=1.2984686920940742
+  eval seed 102: full=33.6197 report=1.6056994024276852
+  eval seed 103: full=55.6535 report=2.3112540555486936
+  eval seed 104: full=72.0247 report=2.5071868667845663
+  eval seed 105: full=77.3299 report=2.2598553970276054
+  eval seed 106: full=34.1673 report=1.8550625349997336
+  eval seed 107: full=35.4538 report=1.2456383800527504
+  eval seed 108: full=56.0260 report=2.313513832382832
+  eval seed 109: full=57.0961 report=2.1481064190094146
+  action latency median=8.2572 ms P95=10.0673 ms
+Initialized cartpole-swingup as environment
+Initialized PlaNet (2.64M) as the world-model
+
+seed_46 loss_version=v2 env_steps=100000
+  eval seed 100: full=96.6915 report=2.7129704306532267
+  eval seed 101: full=80.7983 report=2.995813797224558
+  eval seed 102: full=88.4557 report=3.0962505419695474
+  eval seed 103: full=38.8776 report=1.747671205319693
+  eval seed 104: full=99.6211 report=2.500568819918327
+  eval seed 105: full=73.8935 report=2.01443054380336
+  eval seed 106: full=100.9852 report=3.147844715390965
+  eval seed 107: full=96.1225 report=2.8891420846691624
+  eval seed 108: full=77.8657 report=2.3760889214238463
+  eval seed 109: full=17.4643 report=1.9829850256646182
+  action latency median=8.4276 ms P95=10.8281 ms
+
+=== PER TRAINING SEED (mean over eval seeds) ===
+seed_42: full=45.8804  120-step=1.0662
+seed_43: full=100.1083  120-step=1.9019
+seed_44: full=95.8792  120-step=2.0753
+seed_45: full=51.0375  120-step=1.9666
+seed_46: full=77.0776  120-step=2.5464
+
+EVALUATION COMPLETE!

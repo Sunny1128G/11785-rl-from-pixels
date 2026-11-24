@@ -1,0 +1,20 @@
+Initialized cartpole-swingup as environment
+Initialized PlaNet (2.64M) as the world-model
+
+seed_42 loss_version=v2 env_steps=1440
+  eval seed 100: full=13.2716 report=0.16002129243339755
+  eval seed 101: full=12.2223 report=0.1700517847009786
+  eval seed 102: full=10.8150 report=0.5846987152933426
+  eval seed 103: full=25.4109 report=0.26813315064141374
+  eval seed 104: full=19.7863 report=0.019849461787703283
+  eval seed 105: full=9.4788 report=0.8025168378727001
+  eval seed 106: full=12.8935 report=0.40578173189166117
+  eval seed 107: full=32.9408 report=0.8314481962254723
+  eval seed 108: full=21.2466 report=0.24330898793187458
+  eval seed 109: full=16.3280 report=0.09901470770070207
+  action latency median=8.2600 ms P95=10.5145 ms
+
+=== PER TRAINING SEED (mean over eval seeds) ===
+seed_42: full=17.4394  120-step=0.3585
+
+EVALUATION COMPLETE!

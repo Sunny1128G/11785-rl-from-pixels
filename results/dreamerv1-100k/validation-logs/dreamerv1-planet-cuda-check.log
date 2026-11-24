@@ -1,0 +1,9 @@
+Initialized cartpole-swingup as environment
+Initialized PlaNet (2.64M) as the world-model
+seed=42 algorithm=planet device=cuda loss_version=v2
+Seed episode 1: return=0.5128, env_steps=120
+Seed episode 2: return=0.1826, env_steps=240
+Round 1/2 | Environment Steps: 360 | World Model Updates: 30 | Rollout Return: 0.1850 | Loss: 46.25
+Round 2/2 | Environment Steps: 361 | World Model Updates: 60 | Rollout Return: 0.0000 | Loss: 16.91
+TRAINING COMPLETE | Environment Steps: 361 | World Model Updates: 60
+wall_seconds=39.7909456

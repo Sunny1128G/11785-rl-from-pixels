@@ -1,0 +1,16 @@
+Initialized cartpole-swingup as environment
+Initialized PlaNet (2.64M) as the world-model
+Initialized cartpole-swingup as environment
+Initialized PlaNet (2.64M) as the world-model
+planet: checkpoint, optimizer states, and fixed-seed action verified
+Initialized cartpole-swingup as environment
+Initialized PlaNet (2.64M) as the world-model
+Initialized cartpole-swingup as environment
+Initialized PlaNet (2.64M) as the world-model
+dreamer: checkpoint, optimizer states, and fixed-seed action verified
+Initialized cartpole-swingup as environment
+Initialized PlaNet (2.64M) as the world-model
+midterm_pilot: historical checkpoint reloaded strictly
+Initialized cartpole-swingup as environment
+Initialized PlaNet (2.64M) as the world-model
+midterm_pilot_v2: historical checkpoint reloaded strictly
