@@ -141,15 +141,23 @@ def train(params, out):
     torch.save(checkpoint, staging)
     staging.replace(out / "checkpoint.pt")
 
-    plt.figure(figsize=(7, 4))
-    plt.plot(return_steps, returns, marker="o")
-    plt.xlabel("Training Environment Steps")
-    plt.ylabel("Training Rollout Return")
-    plt.title(f"{algorithm} Cartpole-Swingup Training")
-    plt.grid(alpha=0.3)
-    plt.tight_layout()
-    plt.savefig(out / "curve.png", dpi=150)
-    plt.close()
+    # Plotting is best-effort: some nodes fail in matplotlib font rendering,
+    # and the checkpoint and metrics above are what matter for the results.
+    try:
+        plt.figure(figsize=(7, 4))
+        plt.plot(return_steps, returns, marker="o")
+        plt.xlabel("Training Environment Steps")
+        plt.ylabel("Training Rollout Return")
+        plt.title(f"{algorithm} {params.get('domain_name', 'env')}-"
+                  f"{params.get('task_name', '')} Training")
+        plt.grid(alpha=0.3)
+        plt.tight_layout()
+        plt.savefig(out / "curve.png", dpi=150)
+    except RuntimeError as exc:
+        print(f"WARNING: plotting failed, checkpoint and metrics are saved: {exc}",
+              flush=True)
+    finally:
+        plt.close("all")
     agent.logger.close()
     print(f"TRAINING COMPLETE | Environment Steps: {env_steps} | "
           f"World Model Updates: {len(losses)}", flush=True)
